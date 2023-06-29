@@ -1,11 +1,13 @@
 #ifndef OOP5_BOARDCELL_H
 #define OOP5_BOARDCELL_H
 
-template<typename T, typename T2, typename T3>
+#include "CellType.h"
+#include "Direction.h"
+template<CellType type, Direction dir, int N>
 struct BoardCell{
-    typedef T type;
-    typedef T2 direction;
-    typedef T3 length;
+    typedef type type;
+    typedef dir direction;
+    typedef N length;
 
 };
 #endif //OOP5_BOARDCELL_H

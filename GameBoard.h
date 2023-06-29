@@ -5,11 +5,14 @@
 #ifndef OOP5_GAMEBOARD_H
 #define OOP5_GAMEBOARD_H
 
-template<typename T, typename T2, typename T3>
+#include "List.h"
+#include "BoardCell.h"
+
+template<List<List<T>> list, int W, int L>
 struct GameBoard{
-    typedef T board;
-    typedef T2 width;
-    typedef T3 length;
+    typedef list board;
+    typedef W width;
+    typedef L length;
 
 };
 
