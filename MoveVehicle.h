@@ -19,5 +19,26 @@ struct Move
 };
 
 
+//struct get_Left ->
+//struct get_right ->
+//struct perform move
+//struct valid index
+/*
+template<typename ,int ,int,Direction,int >
+struct MoveVehicle
+{
+
+};*/
+
+template<typename board,int R ,int C,Direction D,int A>
+struct MoveVehicle
+{
+    static_assert(board::);
+};
+
+
+
+
+
 
 #endif //OOP5_MOVEVEHICLE_H
