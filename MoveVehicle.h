@@ -10,7 +10,7 @@
 #include "BoardCell.h"
 #include "List.h"
 #include "Utilities.h"
-
+#include "Provided/part2/TransposeList.h"
 template<CellType cell,Direction dir,int N>
 struct Move
 {
@@ -20,38 +20,54 @@ struct Move
     static constexpr int amount = N;
 };
 
-template <typename Board,int R,int C>
-struct ValidIndex
+template <typename Board,int R,int C,Direction D>
+struct ValidIndexes
 {
-
+private:
     static_assert(R >=0 && R < Board::width, "Invalid Index");
     static_assert(C >=0 && C < Board::length, "Invalid Index");
 
     typedef GetAtIndex<R,typename Board::board> row;
     typedef GetAtIndex<C, row> cell;
     static_assert(cell::type == EMPTY, "Invalid Index");
+    static_assert(cell::direction != D, "Invalid Direction");
 
 };
 
+template<typename X, typename Y>
+struct IsSame
+{
+    static constexpr bool value = false;
+};
+
+template<typename X>
+struct IsSame<X,X>
+{
+    static constexpr bool value = true;
+};
 
 template <typename Board,int R,int C, typename Cell>
-struct GetLeft<Board, R, C>
+struct GetLeft
 {
+private:
     typedef GetAtIndex<R,typename Board::board> row;
-    typedef GetAtIndex<C, row> cell;
-    typedef conditionalInteger<C==0, C, GetRight<Board, R, C-1>>::value next;
-    typedef conditionalInteger<IsSame<Cell,cell>::value, next, C>::value left;
+    typedef typename GetAtIndex<C, row>::value cell;
+    static constexpr int next =  ConditionalInteger<C==0, C, GetLeft<Board, R, C-1,Cell>::left>::value;
+public:
+    static constexpr int left =   ConditionalInteger<IsSame<Cell,cell>::value, next, C>::value;
 
 };
 
 
 template <typename Board, int R,int C, typename Cell>
-struct GetRight<Board, R, C, Cell>
+struct GetRight
 {
+private:
     typedef GetAtIndex<R,typename Board::board> row;
     typedef GetAtIndex<C, row> cell;
-    typedef conditionalInteger<C==Board::length-1, C, GetRight<Board, R, C+1>>::value next;
-    typedef conditionalInteger<IsSame<Cell,cell>::value, next, C>::value right;
+    static constexpr int next = ConditionalInteger<C==Board::length-1, C, GetRight<Board, R, C+1,Cell>::right>::value;
+public:
+    static constexpr int right =  ConditionalInteger<IsSame<Cell,cell>::value, next, C>::value;
 
 };
 
@@ -91,17 +107,6 @@ public:
 
 };
 
-template<typename X, typename Y>
-struct IsSame
-{
-    static constexpr bool value = false;
-};
-
-template<typename X>
-struct IsSame<X,X>
-{
-    static constexpr bool value = true;
-};
 
 
 template <typename Board,int R,int C,Direction D>
@@ -134,28 +139,38 @@ public:
 template <typename Board,int R,int C,Direction D>
 struct PerformMoves<Board,R,C,D,0>
 {
-    typedef typename PerformMove<Board,R,C,D>::board board;
-};
-
-
-template <typename Board,int R,int C,Direction D>
-struct PerformMoves<Board,R,C,D,0>
-{
     typedef Board board;
 };
 
 
-template<typename Board,int R ,int C,Direction D,int A>
-struct MoveVehicle
-{
-    //do step A times
-    static_assert(Board::board::get);/
-    //do checking
-    //handle cases rows vs
-    //check direction of car
-    //make moves <board,edge,direction,amount>
+template<typename Board,int R ,int C,int A,Direction D>
+struct MoveVehicle{};
 
+template<typename Board ,int R ,int C, int A>
+struct MoveVehicle<Board, R , C, A,UP>
+{
+private:
+
+    typedef Transpose<typename Board::board> boardAsList;
+    typedef GetAtIndex<C,boardAsList> row;
+
+
+    static constexpr int lSide = getLeft<board
+
+    typedef GameBoard<boardAsList> transposed;
+
+
+
+    //make transpose
+    //find left edge
+    //find right edge
+    //switch U to L`
+    //apply as L
+    typedef transposed
+    //switch L to U
+    // make transpose
 }
+
 
 
 
