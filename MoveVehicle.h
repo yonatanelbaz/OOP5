@@ -33,10 +33,28 @@ struct ValidIndex
 
 };
 
-template <typename Board,int R,int C>
-struct GetLeft{
-    typedef
+
+template <typename Board,int R,int C, typename Cell>
+struct GetLeft<Board, R, C>
+{
+    typedef GetAtIndex<R,typename Board::board> row;
+    typedef GetAtIndex<C, row> cell;
+    typedef conditionalInteger<C==0, C, GetRight<Board, R, C-1>>::value next;
+    typedef conditionalInteger<IsSame<Cell,cell>::value, next, C>::value left;
+
 };
+
+
+template <typename Board, int R,int C, typename Cell>
+struct GetRight<Board, R, C, Cell>
+{
+    typedef GetAtIndex<R,typename Board::board> row;
+    typedef GetAtIndex<C, row> cell;
+    typedef conditionalInteger<C==Board::length-1, C, GetRight<Board, R, C+1>>::value next;
+    typedef conditionalInteger<IsSame<Cell,cell>::value, next, C>::value right;
+
+};
+
 
 
 //struct get_Left ->
