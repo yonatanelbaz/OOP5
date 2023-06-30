@@ -60,6 +60,16 @@ public:
 };
 
 
+template <typename Board, int R,int C, typename Cell>
+struct CheckWin
+{
+private:
+    typedef GetAtIndex<R,typename Board::board> row;
+    typedef GetAtIndex<C, row> cell;
+    static constexpr int next = ConditionalInteger<C==Board::length-1, true, CheckWin<Board, R, C+1,Cell>::win>::value;
+public:
+    static constexpr int win =  ConditionalInteger<IsSame<Cell,cell>::value, next, false>::value;
+
 
 //struct get_Left ->
 //struct get_right ->
