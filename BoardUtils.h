@@ -85,7 +85,7 @@ public:
 };
 
 template<typename L,CellType X>
-struct FindRedAux
+struct FindCarAux
 {
 private:
     static constexpr int checkRow = FindCarInList<typename L::head,X>::row;
@@ -100,8 +100,9 @@ public:
     static constexpr int row = ConditionalInteger<checkRow == NOT_FOUND, checkRow,nextRowRes>::value ;
     static constexpr int col = ConditionalInteger<checkRow == NOT_FOUND, checkCol,nextColRes>::value ;
 };
+
 template<CellType X>
-struct FindRedAux<List<>,X>
+struct FindCarAux<List<>,X>
 {
     static constexpr int row = -1;
     static constexpr int col = -1 ;
@@ -110,8 +111,8 @@ struct FindRedAux<List<>,X>
 template<typename Board,CellType X>
 struct FindCar
 {
-    static constexpr int row = FindRedAux<typename Board::board,X>::row;
-    static constexpr int col =  FindRedAux<typename Board::board,X>::col;
+    static constexpr int row = FindCarAux<typename Board::board,X>::row;
+    static constexpr int col =  FindCarAux<typename Board::board,X>::col;
 public:
     typedef BoardIndex<row,col> res;
 };
