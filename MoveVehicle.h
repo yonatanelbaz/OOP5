@@ -16,7 +16,7 @@
 template<CellType cell,Direction dir,int N>
 struct Move
 {
-    static_assert(cell==EMPTY,"Empty cell is not ok!\n");
+    static_assert(cell!=EMPTY,"Empty cell is not ok!\n");
     static constexpr CellType type = cell;
     static constexpr Direction direction = dir;
     static constexpr int amount = N;
@@ -32,37 +32,56 @@ private:
     typedef GetAtIndex<R,typename Board::board> row;
     typedef GetAtIndex<C, row> cell;
     static_assert(cell::type == EMPTY, "Invalid Index");
-    static_assert(cell::direction != D, "Invalid Direction");
+    static_assert(cell::direction == LEFT && D != RIGHT && D != LEFT, "Invalid Direction");
+    static_assert(cell::direction == RIGHT && D != RIGHT && D != LEFT, "Invalid Direction");
+    static_assert(cell::direction == UP && D != UP && D != DOWN, "Invalid Direction");
+    static_assert(cell::direction == DOWN && D != UP && D != DOWN, "Invalid Direction");
 };
 
-template <typename Board,int R,int C, typename Cell>
+template <typename Board, int R,int C, typename Cell>
 struct GetLeft
 {
 private:
-    typedef GetAtIndex<R,typename Board::board> row;
+    typedef typename GetAtIndex<R,typename Board::board>::value row;
+
+    static constexpr int next = GetLeft<Board, R, C-1,Cell>::left;
     typedef typename GetAtIndex<C, row>::value cell;
-    static constexpr int next =  ConditionalInteger<C==0, C, GetLeft<Board, R, C-1,Cell>::left>::value;
+    static constexpr int checkNext = ConditionalInteger<next != NOT_FOUND,next,C>::value;
 public:
-    static constexpr int left =   ConditionalInteger<IsSame<Cell,cell>::value, next, C>::value;
+    static constexpr int left =  ConditionalInteger<IsSame<Cell,cell>::value, checkNext, NOT_FOUND>::value;
+
+};
+
+
+template <typename Board,int R, typename Cell>
+struct GetLeft<Board,R,-1,Cell>
+{
+public:
+    static constexpr int left =NOT_FOUND ;
+};
+
+template <typename Board,int width, int R,int C, typename Cell>
+struct GetRight
+{
+private:
+    typedef typename GetAtIndex<R,typename Board::board>::value row;
+
+    static constexpr int next = GetRight<Board,width, R, C+1,Cell>::right;
+    typedef typename GetAtIndex<C, row>::value cell;
+    static constexpr int checkNext = ConditionalInteger<next != NOT_FOUND,next,C>::value;
+public:
+    static constexpr int right =  ConditionalInteger<IsSame<Cell,cell>::value, checkNext, NOT_FOUND>::value;
 
 };
 
 
 template <typename Board, int R,int C, typename Cell>
-struct GetRight
+struct GetRight<Board,C,R,C,Cell>
 {
-private:
-    typedef GetAtIndex<R,typename Board::board> row;
-    typedef GetAtIndex<C, row> cell;
-    static constexpr int next = ConditionalInteger<C==Board::length-1, C, GetRight<Board, R, C+1,Cell>::right>::value;
 public:
-    static constexpr int right =  ConditionalInteger<IsSame<Cell,cell>::value, next, C>::value;
+    static constexpr int right =  NOT_FOUND;
 
 };
-
-
-
-
 
 //struct get_Left ->
 //struct get_right ->
@@ -82,17 +101,20 @@ template <typename Board,int R,int C,Direction D>
 struct PerformMove
 {
 private:
-    typedef typename GetCellAtIndex<Board,R,C>::cell sourceCell;
-    typedef typename GetCellAtIndex<Board,R,C>::cell destCell;
+    typedef typename GetCellAtIndex<Board,R,C>::cell givenCell;
+
+    static const int sideCol = ConditionalInteger<D==LEFT, GetRight<Board,Board::width,R,C,givenCell>::right, GetLeft<Board,R,C,givenCell>::left>::value;
+    typedef typename GetCellAtIndex<Board,R,sideCol>::cell sourceCell;
+
 
     static constexpr int carLength = sourceCell::length;
-    static constexpr int newCol = ConditionalInteger<D == R, C +carLength,C-carLength>::value;
-
-    static_assert(destCell::type != EMPTY,"The spot is taken bro\n");
-    typedef typename SetCellAtIndex<Board,R,C,BoardCell<EMPTY,UP,0>>::board eraseBoard;
-
+    static constexpr int newCol = ConditionalInteger<D == RIGHT, sideCol +carLength,sideCol-carLength>::value;
+    typedef typename GetCellAtIndex<Board,R,newCol>::cell destCell;
+    static_assert(destCell::type == EMPTY,"The spot is taken bro\n");
+    typedef typename SetCellAtIndex<Board,R,sideCol,BoardCell<EMPTY,UP,0>>::board eraseBoard;
 public:
     typedef typename SetCellAtIndex<eraseBoard,R,newCol,sourceCell>::board board;
+    static constexpr int nextCol = ConditionalInteger<D==RIGHT,C+1,sideCol-1>::value;
 };
 
 
@@ -101,8 +123,9 @@ struct PerformMoves
 {
 private:
     typedef typename PerformMove<Board,R,C,D>::board boardAfterMove;
+    static constexpr int nextColNew= PerformMove<Board,R,C,D>::nextCol;
 public:
-    typedef typename PerformMoves<boardAfterMove,R,C,D,A-1>::board board;
+    typedef typename PerformMoves<boardAfterMove,R,nextColNew,D,A-1>::board board;
 };
 
 template <typename Board,int R,int C,Direction D>
@@ -139,22 +162,24 @@ private:
 
     typedef typename Transpose<typename Board::board>::matrix boardAsList;
     typedef typename GetAtIndex<C,boardAsList>::value row;
-    typedef typename GetCellAtIndex<Board,C,R>::cell cellDown;
-    typedef  BoardCell<cellDown::type,LEFT,cellDown::amount> cellRight;
+    typedef typename GetCellAtIndex<Board,R,C>::cell cellUp;
+    typedef  BoardCell<cellUp::type,LEFT,cellUp::length> cellLeft;
 
-    static constexpr int dSide = GetLeft<boardAsList,C,R,cellDown>::value;
-    static constexpr int USide = GetRight<boardAsList,C,R,cellDown>::value;
-
-    static constexpr int dSideAfter = dSide + A ;
-    static constexpr int USideAfter = USide +A   ;
+    static constexpr int dSide = GetLeft<GameBoard<boardAsList>,C,R,cellUp>::left;
+    static constexpr int uSide = GetRight<GameBoard<boardAsList>,Board::length,C,R,cellUp>::right;
 
 
-    typedef typename MakeSwitch<typename Board::board,C,dSide,USide,cellRight>::matrix boardAfterSwitchPre;
+
+    static constexpr int dSideAfter = dSide -A;
+    static constexpr int uSideAfter = uSide -A;
 
 
-    typedef MoveVehicle<boardAfterSwitchPre, C,R, LEFT,A> boardAfterMove;
+    typedef typename MakeSwitch<GameBoard<boardAsList>,C,dSide,uSide,cellLeft>::board boardAfterSwitchPre;
 
-    typedef typename MakeSwitch<boardAfterMove,C,dSideAfter,USideAfter,cellDown>::matrix boardAfterSwitchPost;
+
+    typedef typename MoveVehicle<boardAfterSwitchPre, C,R, LEFT,A>::board boardAfterMove;
+
+    typedef typename MakeSwitch<boardAfterMove,C,dSideAfter,uSideAfter,cellUp>::board boardAfterSwitchPost;
 
 
     typedef typename Transpose<typename boardAfterSwitchPost::board>::matrix finalTranspose;
@@ -173,22 +198,20 @@ private:
 
     typedef typename Transpose<typename Board::board>::matrix boardAsList;
     typedef typename GetAtIndex<C,boardAsList>::value row;
-    typedef typename GetCellAtIndex<Board,C,R>::cell cellDown;
-    typedef  BoardCell<cellDown::type,RIGHT,cellDown::amount> cellRight;
+    typedef typename GetCellAtIndex<Board,R,C>::cell cellDown;
+    typedef BoardCell<cellDown::type,RIGHT,cellDown::length> cellRight;
 
-    static constexpr int dSide = GetLeft<boardAsList,C,R,cellDown>::value;
-    static constexpr int USide = GetRight<boardAsList,C,R,cellDown>::value;
-
+    static constexpr int dSide = GetLeft<GameBoard<boardAsList>,C,R,cellDown>::left;
+    static constexpr int uSide = GetRight<GameBoard<boardAsList>,Board::length,C,R,cellDown>::right;
     static constexpr int dSideAfter = dSide + A;
-    static constexpr int USideAfter = USide + A;
+    static constexpr int USideAfter = uSide + A;
 
 
-    typedef typename MakeSwitch<typename Board::board,C,dSide,USide,cellRight>::matrix boardAfterSwitchPre;
+    typedef typename MakeSwitch<GameBoard<boardAsList>,C,dSide,uSide,cellRight>::board boardAfterSwitchPre;
 
+    typedef typename MoveVehicle<boardAfterSwitchPre,C,R,RIGHT,A>::board boardAfterMove;
 
-    typedef MoveVehicle<boardAfterSwitchPre, C,R,RIGHT,A> boardAfterMove;
-
-    typedef typename MakeSwitch<boardAfterMove,C,dSideAfter,USideAfter,cellDown>::matrix boardAfterSwitchPost;
+    typedef typename MakeSwitch<boardAfterMove,C,dSideAfter,USideAfter,cellDown>::board boardAfterSwitchPost;
 
 
     typedef typename Transpose<typename boardAfterSwitchPost::board>::matrix finalTranspose;

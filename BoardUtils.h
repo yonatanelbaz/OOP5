@@ -64,12 +64,13 @@ public:
     typedef typename SetCellAtIndex<Board,R,x,V>::board board;
 };
 
-template<typename L,CellType X>
+template<typename L,CellType Type>
 struct FindCarInList
 {
 private:
-    static constexpr bool cond =  L::head::type == X;
-    static constexpr int nextIndex = FindCarInList<typename L::next,X>::index;
+    static constexpr bool cond = L::head::type == Type;
+    static constexpr int nextIndex = FindCarInList<typename L::next,Type>::index;
+
     static constexpr int nextRes = ConditionalInteger<nextIndex == NOT_FOUND,NOT_FOUND,1+nextIndex>::value;
 
 public:
@@ -77,10 +78,9 @@ public:
 
 };
 
-template<CellType X>
-struct FindCarInList<List<>,X>
+template<CellType Type>
+struct FindCarInList<List<>,Type>
 {
-private:
 public:
     static constexpr int index = NOT_FOUND;
 };
@@ -95,25 +95,24 @@ private:
     static constexpr int nextRowRes = ConditionalInteger<nextRow == NOT_FOUND,nextRow,nextRow+1>::value;
 
     static constexpr int nextCol = FindCarAux<typename L::next,X>::col;
-    static constexpr int nextColRes = ConditionalInteger<nextCol == NOT_FOUND,nextCol,nextCol+1>::value;
 
 public:
     static constexpr int row = ConditionalInteger<checkCol == NOT_FOUND,nextRowRes ,0>::value ;
-    static constexpr int col = ConditionalInteger<checkCol == NOT_FOUND, nextColRes,checkCol>::value ;
+    static constexpr int col = ConditionalInteger<checkCol == NOT_FOUND, nextCol,checkCol>::value ;
 };
 
-template<CellType X>
-struct FindCarAux<List<>,X>
+template<CellType Type>
+struct FindCarAux<List<>,Type>
 {
     static constexpr int row = -1;
     static constexpr int col = -1 ;
 };
 
-template<typename Board,CellType X>
+template<typename Board,CellType Type>
 struct FindCar
 {
-    static constexpr int row = FindCarAux<typename Board::board,X>::row;
-    static constexpr int col =  FindCarAux<typename Board::board,X>::col;
+    static constexpr int row = FindCarAux<typename Board::board,Type>::row;
+    static constexpr int col =  FindCarAux<typename Board::board,Type>::col;
 public:
     typedef BoardIndex<row,col> res;
 };
