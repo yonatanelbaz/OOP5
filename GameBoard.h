@@ -8,7 +8,7 @@
 #include "List.h"
 #include "BoardCell.h"
 
-template<typename RowsHead, typename... RowsTail>
+template<typename L>
 struct GameBoard
 {
 
@@ -19,8 +19,8 @@ template<typename RowsHead, typename... RowsTail>
 struct GameBoard<List<RowsHead, RowsTail...>>
 {
     typedef List<RowsHead, RowsTail...> board;
-    typedef typename RowsHead::size width;
-    typedef typename board::size length;
+    static constexpr int width =  RowsHead::size;
+    static constexpr int length = board::size;
 
 };
 

@@ -52,7 +52,7 @@ struct GetAtIndex
 template<int N,typename... TT>
 struct GetAtIndex<N,List<TT...>>
 {
-    typedef GetAtIndex<N-1, typename List<TT...>::next> value;
+    typedef typename GetAtIndex<N-1, typename List<TT...>::next>::value value;
 };
 
 template<typename... TT>

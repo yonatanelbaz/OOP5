@@ -7,7 +7,8 @@
 
 #include "Utilities.h"
 #include "CellType.h"
-
+#include "List.h"
+#include "GameBoard.h"
 constexpr int NOT_FOUND = -1;
 template<typename X, typename Y>
 struct IsSame
@@ -32,19 +33,19 @@ template <typename Board,int R,int C>
 struct GetCellAtIndex
 {
 private:
-    typedef GetAtIndex<R,typename Board::board> row;
+    typedef typename GetAtIndex<R,typename Board::board>::value row;
 public:
-    typedef GetAtIndex<C, row> cell;
+    typedef typename GetAtIndex<C, row>::value cell;
 };
 
 template <typename Board,int R,int C,typename V>
 struct SetCellAtIndex
 {
 private:
-    typedef GetAtIndex<R,typename Board::board> oldRow;
-    typedef SetAtIndex<C,V, oldRow> newCol;
+    typedef typename GetAtIndex<R,typename Board::board>::value oldRow;
+    typedef typename SetAtIndex<C,V, oldRow>::list newCol;
 public:
-    typedef SetAtIndex<R,newCol, typename Board::board> board;
+    typedef GameBoard<typename SetAtIndex<R,newCol, typename Board::board>::list> board;
 
 };
 template<typename Board,int R,int l,int r,typename V>
@@ -67,7 +68,7 @@ template<typename L,CellType X>
 struct FindCarInList
 {
 private:
-    static constexpr bool cond =  L::head::type ==X;
+    static constexpr bool cond =  L::head::type == X;
     static constexpr int nextIndex = FindCarInList<typename L::next,X>::index;
     static constexpr int nextRes = ConditionalInteger<nextIndex == NOT_FOUND,NOT_FOUND,1+nextIndex>::value;
 
@@ -88,17 +89,17 @@ template<typename L,CellType X>
 struct FindCarAux
 {
 private:
-    static constexpr int checkRow = FindCarInList<typename L::head,X>::row;
-    static constexpr int checkCol = FindCarInList<typename L::head,X>::col;
-    static constexpr int nextRow = FindCarInList<typename L::next,X>::row;
-    static constexpr int nextRowRes = ConditionalInteger<nextRow == NOT_FOUND,nextRow,nextRowRes+1>::value;
+    static constexpr int checkCol = FindCarInList<typename L::head,X>::index;
 
-    static constexpr int nextCol = FindCarInList<typename L::next,X>::col;
-    static constexpr int nextColRes = ConditionalInteger<nextCol == NOT_FOUND,nextCol,nextColRes+1>::value;
+    static constexpr int nextRow = FindCarAux<typename L::next,X>::row;
+    static constexpr int nextRowRes = ConditionalInteger<nextRow == NOT_FOUND,nextRow,nextRow+1>::value;
+
+    static constexpr int nextCol = FindCarAux<typename L::next,X>::col;
+    static constexpr int nextColRes = ConditionalInteger<nextCol == NOT_FOUND,nextCol,nextCol+1>::value;
 
 public:
-    static constexpr int row = ConditionalInteger<checkRow == NOT_FOUND, checkRow,nextRowRes>::value ;
-    static constexpr int col = ConditionalInteger<checkRow == NOT_FOUND, checkCol,nextColRes>::value ;
+    static constexpr int row = ConditionalInteger<checkCol == NOT_FOUND,nextRowRes ,0>::value ;
+    static constexpr int col = ConditionalInteger<checkCol == NOT_FOUND, nextColRes,checkCol>::value ;
 };
 
 template<CellType X>

@@ -3,11 +3,11 @@
 
 #include "CellType.h"
 #include "Direction.h"
-template<CellType type, Direction dir, int N>
+template<CellType givenType, Direction dir, int N>
 struct BoardCell{
-    typedef type type;
-    typedef dir direction;
-    typedef N length;
+    static constexpr CellType type=givenType;
+    static constexpr Direction direction=dir;
+    static constexpr int length =N;
 
 };
 #endif //OOP5_BOARDCELL_H

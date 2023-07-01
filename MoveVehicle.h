@@ -9,9 +9,10 @@
 #include "Direction.h"
 #include "BoardCell.h"
 #include "List.h"
+#include "GameBoard.h"
 #include "Utilities.h"
 #include "BoardUtils.h"
-#include "Provided/part2/TransposeList.h"
+#include "TransposeList.h"
 template<CellType cell,Direction dir,int N>
 struct Move
 {
@@ -81,8 +82,8 @@ template <typename Board,int R,int C,Direction D>
 struct PerformMove
 {
 private:
-    typedef GetCellAtIndex<Board,R,C>  sourceCell;
-    typedef GetCellAtIndex<Board,R,C>  destCell;
+    typedef typename GetCellAtIndex<Board,R,C>::cell sourceCell;
+    typedef typename GetCellAtIndex<Board,R,C>::cell destCell;
 
     static constexpr int carLength = sourceCell::length;
     static constexpr int newCol = ConditionalInteger<D == R, C +carLength,C-carLength>::value;
@@ -112,33 +113,33 @@ struct PerformMoves<Board,R,C,D,0>
 
 
 
-template<typename Board,int R ,int C,int A,Direction D>
+template<typename Board,int R ,int C,Direction D,int A>
 struct MoveVehicle{};
 
 template<typename Board ,int R ,int C, int A>
-struct MoveVehicle<Board, R , C, A,LEFT>
+struct MoveVehicle<Board, R , C, LEFT,A>
 {
-    ValidIndexes<Board,R,C,LEFT>;
+    typedef ValidIndexes<Board,R,C,LEFT> check;
 public:
     typedef typename PerformMoves<Board,R,C,LEFT,A>::board board;
 
 };
 template<typename Board ,int R ,int C, int A>
-struct MoveVehicle<Board, R , C, A,RIGHT>
+struct MoveVehicle<Board, R , C,RIGHT,A>
 {
-    ValidIndexes<Board,R,C,RIGHT>;
+    typedef ValidIndexes<Board,R,C,RIGHT> check;
 public:
     typedef typename PerformMoves<Board,R,C,RIGHT,A>::board board;
 
 };
 template<typename Board ,int R ,int C, int A>
-struct MoveVehicle<Board, R , C, A,UP>
+struct MoveVehicle<Board, R , C,UP,A>
 {
 private:
 
     typedef typename Transpose<typename Board::board>::matrix boardAsList;
     typedef typename GetAtIndex<C,boardAsList>::value row;
-    typedef typename GetCellAtIndex<Board,C,R>::value cellDown;
+    typedef typename GetCellAtIndex<Board,C,R>::cell cellDown;
     typedef  BoardCell<cellDown::type,LEFT,cellDown::amount> cellRight;
 
     static constexpr int dSide = GetLeft<boardAsList,C,R,cellDown>::value;
@@ -151,7 +152,7 @@ private:
     typedef typename MakeSwitch<typename Board::board,C,dSide,USide,cellRight>::matrix boardAfterSwitchPre;
 
 
-    typedef MoveVehicle<boardAfterSwitchPre, C,R, A,LEFT> boardAfterMove;
+    typedef MoveVehicle<boardAfterSwitchPre, C,R, LEFT,A> boardAfterMove;
 
     typedef typename MakeSwitch<boardAfterMove,C,dSideAfter,USideAfter,cellDown>::matrix boardAfterSwitchPost;
 
@@ -166,13 +167,13 @@ public:
 
 
 template<typename Board ,int R ,int C, int A>
-struct MoveVehicle<Board, R , C, A,DOWN>
+struct MoveVehicle<Board, R , C,DOWN,A>
 {
 private:
 
     typedef typename Transpose<typename Board::board>::matrix boardAsList;
     typedef typename GetAtIndex<C,boardAsList>::value row;
-    typedef typename GetCellAtIndex<Board,C,R>::value cellDown;
+    typedef typename GetCellAtIndex<Board,C,R>::cell cellDown;
     typedef  BoardCell<cellDown::type,RIGHT,cellDown::amount> cellRight;
 
     static constexpr int dSide = GetLeft<boardAsList,C,R,cellDown>::value;
@@ -185,7 +186,7 @@ private:
     typedef typename MakeSwitch<typename Board::board,C,dSide,USide,cellRight>::matrix boardAfterSwitchPre;
 
 
-    typedef MoveVehicle<boardAfterSwitchPre, C,R, A,RIGHT> boardAfterMove;
+    typedef MoveVehicle<boardAfterSwitchPre, C,R,RIGHT,A> boardAfterMove;
 
     typedef typename MakeSwitch<boardAfterMove,C,dSideAfter,USideAfter,cellDown>::matrix boardAfterSwitchPost;
 
