@@ -21,6 +21,29 @@ struct Move
     static constexpr Direction direction = dir;
     static constexpr int amount = N;
 };
+template <typename Board,int R,int C,Direction D,bool cond>
+struct ValidIndexesAux
+{
+private:
+    typedef typename GetAtIndex<R,typename Board::board>::value row;
+    typedef typename GetAtIndex<C, row>::value cell;
+    static_assert(cell::type != EMPTY, "Cell is Empty");
+    static_assert(cell::direction != LEFT || (D == RIGHT || D == LEFT), "Invalid Direction");
+    static_assert(cell::direction != RIGHT || (D == RIGHT || D == LEFT), "Invalid Direction");
+    static_assert(cell::direction != UP || (D == UP || D == DOWN), "Invalid Direction");
+    static_assert(cell::direction != DOWN || (D == UP || D == DOWN), "Invalid Direction");
+public:
+    static constexpr bool result = true;
+
+};
+
+template <typename Board,int R,int C,Direction D>
+struct ValidIndexesAux<Board,R,C,D,false>
+{
+public:
+    static constexpr bool result = true;
+
+};
 
 template <typename Board,int R,int C,Direction D>
 struct ValidIndexes
@@ -29,17 +52,14 @@ private:
     static_assert(R >=0 && R < Board::length, "Invalid Index row");
     static_assert(C >=0 && C < Board::width, "Invalid Index col");
 
-    typedef typename GetAtIndex<R,typename Board::board>::value row;
-    typedef typename GetAtIndex<C, row>::value cell;
-    static_assert(cell::type != EMPTY, "Invalid Index");
-    static_assert(cell::direction != LEFT || (D == RIGHT || D == LEFT), "Invalid Direction");
-    static_assert(cell::direction != RIGHT || (D == RIGHT || D == LEFT), "Invalid Direction");
-    static_assert(cell::direction != UP || (D == UP || D == DOWN), "Invalid Direction");
-    static_assert(cell::direction != DOWN || (D == UP || D == DOWN), "Invalid Direction");
+    static constexpr bool cond = R >=0 && R < Board::length&& C >=0 && C < Board::width;
+    static constexpr bool fullCond =ValidIndexesAux<Board,R,C,D,cond>::result;
 
 public:
-    static constexpr bool result = true;
+    static constexpr bool result =  cond&&fullCond;
 };
+
+
 
 template <typename Board, int R,int C, typename Cell>
 struct GetLeft
@@ -161,7 +181,7 @@ struct MoveVehicle<Board, R , C,RIGHT,A>
 private:
     static constexpr bool check =ValidIndexes<Board,R,C,RIGHT>::result;
 public:
-    static_assert(check,"not good");
+    static_assert(check,"");
     typedef typename PerformMoves<Board,R,C,RIGHT,A>::board board;
 
 };
@@ -170,7 +190,7 @@ struct MoveVehicle<Board, R , C,UP,A>
 {
 private:
     static constexpr bool check = ValidIndexes<Board,R,C,UP>::result;
-    static_assert(check,"oops");
+    static_assert(check,"");
 
     typedef typename Transpose<typename Board::board>::matrix boardAsList;
     typedef typename GetAtIndex<C,boardAsList>::value row;

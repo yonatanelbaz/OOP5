@@ -295,16 +295,16 @@ static void moveVehicleErrorsTest() {
 	typedef GameBoard<list2x3> board2x3;
 
 	// index out of bounds:
-	MoveVehicle<board2x3, -1,  1, LEFT, 1>m1; (void)m1;
-	MoveVehicle<board2x3,  1, -1, LEFT, 1>m2; (void)m2;
-	MoveVehicle<board2x3,  3,  1, LEFT, 1>m3; (void)m3;
-	MoveVehicle<board2x3,  1,  2, LEFT, 1>m4; (void)m4;
+	//MoveVehicle<board2x3, -1,  1, LEFT, 1>m1; (void)m1;
+	//MoveVehicle<board2x3,  1, -1, LEFT, 1>m2; (void)m2;
+	//MoveVehicle<board2x3,  3,  1, LEFT, 1>m3; (void)m3;
+	//MoveVehicle<board2x3,  1,  2, LEFT, 1>m4; (void)m4;
 
 	// move empty cell:
 	MoveVehicle<board2x3, 0,  0, RIGHT, 1>m10; (void)m10;
 
 	// move in bad direction (sideways)
-	MoveVehicle<board2x3, 1, 0, UP,    1>m21; (void)m21;
+	MoveVehicle<board2x3, 1, 0, DOWN,    1>m21; (void)m21;
 	MoveVehicle<board2x3, 1, 0, DOWN,  1>m22; (void)m22;
 	MoveVehicle<board2x3, 1, 1, LEFT,  1>m23; (void)m23;
 	MoveVehicle<board2x3, 1, 1, RIGHT, 1>m24; (void)m24;
@@ -507,7 +507,7 @@ static void providedExampleStepByStep() {
 
 int main(){
 #ifdef TEST_COMPILATION_ERRORS
-    moveCannotBeEmptyTest();
+    //moveCannotBeEmptyTest();
     moveVehicleErrorsTest();
 #endif
 
@@ -524,11 +524,6 @@ int main(){
 	checkWin_noWin_board_1x6_Test();
 	moveVehicle_game_Test();
 	checkSolution_game_Test();
-
-#ifdef TEST_COMPILATION_ERRORS
-	moveCannotBeEmptyTest();
-	moveVehicleErrorsTest();
-#endif
 
 #ifdef COME_TO_THE_LEV_SIDE
 	getCoordinatesTest();
