@@ -26,16 +26,20 @@ template <typename Board,int R,int C,Direction D>
 struct ValidIndexes
 {
 private:
-    static_assert(R >=0 && R < Board::width, "Invalid Index");
-    static_assert(C >=0 && C < Board::length, "Invalid Index");
 
-    typedef GetAtIndex<R,typename Board::board> row;
-    typedef GetAtIndex<C, row> cell;
-    static_assert(cell::type == EMPTY, "Invalid Index");
-    static_assert(cell::direction == LEFT && D != RIGHT && D != LEFT, "Invalid Direction");
-    static_assert(cell::direction == RIGHT && D != RIGHT && D != LEFT, "Invalid Direction");
-    static_assert(cell::direction == UP && D != UP && D != DOWN, "Invalid Direction");
-    static_assert(cell::direction == DOWN && D != UP && D != DOWN, "Invalid Direction");
+    static_assert(R >=0 && R < Board::length, "Invalid Index row");
+    static_assert(C >=0 && C < Board::width, "Invalid Index col");
+
+    typedef typename GetAtIndex<R,typename Board::board>::value row;
+    typedef typename GetAtIndex<C, row>::value cell;
+    static_assert(cell::type != EMPTY, "Invalid Index");
+    static_assert(cell::direction != LEFT || (D == RIGHT || D == LEFT), "Invalid Direction");
+    static_assert(cell::direction != RIGHT || (D == RIGHT || D == LEFT), "Invalid Direction");
+    static_assert(cell::direction != UP || (D == UP || D == DOWN), "Invalid Direction");
+    static_assert(cell::direction != DOWN || (D == UP || D == DOWN), "Invalid Direction");
+
+public:
+    static constexpr bool result = true;
 };
 
 template <typename Board, int R,int C, typename Cell>
@@ -47,8 +51,9 @@ private:
     static constexpr int next = GetLeft<Board, R, C-1,Cell>::left;
     typedef typename GetAtIndex<C, row>::value cell;
     static constexpr int checkNext = ConditionalInteger<next != NOT_FOUND,next,C>::value;
+    static constexpr bool cond = Cell::type==cell::type && Cell::length == cell::length;
 public:
-    static constexpr int left =  ConditionalInteger<IsSame<Cell,cell>::value, checkNext, NOT_FOUND>::value;
+    static constexpr int left =  ConditionalInteger<cond, checkNext, NOT_FOUND>::value;
 
 };
 
@@ -69,8 +74,10 @@ private:
     static constexpr int next = GetRight<Board,width, R, C+1,Cell>::right;
     typedef typename GetAtIndex<C, row>::value cell;
     static constexpr int checkNext = ConditionalInteger<next != NOT_FOUND,next,C>::value;
+    static constexpr bool cond = Cell::type==cell::type && Cell::length == cell::length;
+
 public:
-    static constexpr int right =  ConditionalInteger<IsSame<Cell,cell>::value, checkNext, NOT_FOUND>::value;
+    static constexpr int right =  ConditionalInteger<cond, checkNext, NOT_FOUND>::value;
 
 };
 
@@ -142,16 +149,20 @@ struct MoveVehicle{};
 template<typename Board ,int R ,int C, int A>
 struct MoveVehicle<Board, R , C, LEFT,A>
 {
-    typedef ValidIndexes<Board,R,C,LEFT> check;
+private:
+    static constexpr bool check = ValidIndexes<Board,R,C,LEFT>::result;
 public:
+    static_assert(ValidIndexes<Board,R,C,LEFT>::result,"oops");
     typedef typename PerformMoves<Board,R,C,LEFT,A>::board board;
 
 };
 template<typename Board ,int R ,int C, int A>
 struct MoveVehicle<Board, R , C,RIGHT,A>
 {
-    typedef ValidIndexes<Board,R,C,RIGHT> check;
+private:
+    static constexpr bool check =ValidIndexes<Board,R,C,RIGHT>::result;
 public:
+    static_assert(check,"not good");
     typedef typename PerformMoves<Board,R,C,RIGHT,A>::board board;
 
 };
@@ -159,6 +170,8 @@ template<typename Board ,int R ,int C, int A>
 struct MoveVehicle<Board, R , C,UP,A>
 {
 private:
+    static constexpr bool check = ValidIndexes<Board,R,C,UP>::result;
+    static_assert(check,"oops");
 
     typedef typename Transpose<typename Board::board>::matrix boardAsList;
     typedef typename GetAtIndex<C,boardAsList>::value row;
@@ -195,6 +208,8 @@ template<typename Board ,int R ,int C, int A>
 struct MoveVehicle<Board, R , C,DOWN,A>
 {
 private:
+    static constexpr bool check = ValidIndexes<Board,R,C,DOWN>::result;
+    static_assert(check,"oops");
 
     typedef typename Transpose<typename Board::board>::matrix boardAsList;
     typedef typename GetAtIndex<C,boardAsList>::value row;
