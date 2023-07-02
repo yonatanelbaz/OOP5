@@ -26,7 +26,6 @@ template <typename Board,int R,int C,Direction D>
 struct ValidIndexes
 {
 private:
-
     static_assert(R >=0 && R < Board::length, "Invalid Index row");
     static_assert(C >=0 && C < Board::width, "Invalid Index col");
 
@@ -152,7 +151,7 @@ struct MoveVehicle<Board, R , C, LEFT,A>
 private:
     static constexpr bool check = ValidIndexes<Board,R,C,LEFT>::result;
 public:
-    static_assert(ValidIndexes<Board,R,C,LEFT>::result,"oops");
+    static_assert(check,"oops");
     typedef typename PerformMoves<Board,R,C,LEFT,A>::board board;
 
 };
